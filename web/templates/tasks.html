@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Hub - Caldera Commons</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .log-panel {
+    background: #0d1117; border: 1px solid #30363d; padding: 25px;
+    border-radius: 4px; margin-bottom: 30px;
+  }
+  .step-header {
+    color: #79c0ff; font-size: 0.9rem; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 15px; border-bottom: 1px solid #30363d;
+    padding-bottom: 5px;
+  }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-size: 0.85rem; color: #8b949e; margin-bottom: 8px; }
+  .form-control {
+    width: 100%; padding: 12px; background: #161b22; border: 1px solid #30363d;
+    color: #c8d8c8; border-radius: 4px; font-family: monospace; box-sizing: border-box;
+    font-size: 1rem;
+  }
+  .form-control:focus { border-color: #58a6ff; outline: none; }
+  .slider-value { color: #5aad7a; font-weight: bold; font-size: 1.2rem; margin-left: 10px; }
+  
+  input[type=range] {
+    width: 80%; accent-color: #5aad7a;
+  }
+  
+  /* Mobile Camera Button */
+  .camera-btn-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
+  .camera-btn {
+    display: block; width: 100%; background: #1a2a1a; color: #5aad7a;
+    border: 1px dashed #5aad7a; padding: 15px; text-align: center;
+    border-radius: 4px; font-family: monospace; font-size: 1rem; cursor: pointer;
+  }
+  .camera-btn-wrapper input[type=file] {
+    font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%;
+  }
+
+  .submit-log-btn {
+    width: 100%; background: #1f6feb; color: white; border: none; padding: 15px;
+    border-radius: 4px; cursor: pointer; font-family: monospace; font-size: 1.1rem;
+    font-weight: bold; margin-top: 10px; transition: 0.2s;
+  }
+  .submit-log-btn:hover { background: #388bfd; }
+</style>
+</head>
+<body>
+  <div style="background-color: #1a1a1a; padding: 10px 20px; text-align: right; border-bottom: 1px solid #333; font-family: monospace; font-size: 14px;">
+        <span style="color: #888;">Logged in as:</span> 
+        <span style="color: #4CAF50; font-weight: bold; margin-right: 15px;">{{ user_email }}</span>
+        <span style="color: #58a6ff; font-weight: bold; margin-right: 15px;">Points: {{ total_points }}</span>
+        <a href="/logout" style="color: #f44336; text-decoration: none; padding: 4px 8px; border: 1px solid #f44336; border-radius: 3px;">Clock Out</a>
+  </div>
+  
+  <nav class="navbar">
+    <a href="/">🏡 Dashboard</a>
+    <a href="/chores">🛡️ Chores</a>
+    <a href="/skills">⚡ Skills</a>
+    <a href="/tasks" class="active">🛠️ Task Hub</a>
+    <a href="/community">🏛️ Community Board</a>
+    <a href="/live">Live at Caldera Command</a>
+    {% if user_is_director %}
+      <a href="/director-trends">📊 Director Portal</a>
+    {% endif %}
+  </nav>
+
+  <div class="container">
+    <div style="margin-bottom: 25px;">
+      <a href="/" class="nav-btn secondary" style="display: inline-block; width: auto; padding: 8px 12px; font-size: 0.8rem;">&larr; Back to Dashboard</a>
+    </div>
+
+    <h1>THE TASK HUB</h1>
+    <p class="tagline">Log your shift. Prove your work. Build your ledger.</p>
+
+    <div class="log-panel">
+      <form id="shift-log-form">
+        
+        <div class="step-header">1. The Sweat</div>
+        <div class="form-group">
+          <label>Hours Clocked</label>
+          <input type="range" id="hours" min="1" max="14" value="8" oninput="document.getElementById('hours-val').innerText = this.value + ' hrs'">
+          <span id="hours-val" class="slider-value">8 hrs</span>
+        </div>
+        
+        <div class="form-group">
+          {% if target_trade == "Logistics / Dispatch" %}
+            <label>Dispatch Logs / Routes</label>
+            <input type="text" id="task" class="form-control" placeholder="e.g., Coordinated 5 deliveries, managed fleet comms" required>
+            
+          {% elif target_trade == "Sales / Client Relations" %}
+            <label>Client Interactions</label>
+            <input type="text" id="task" class="form-control" placeholder="e.g., Closed 2 deals, made 15 cold calls" required>
+            
+          {% elif target_trade == "HVAC / Mechanics" %}
+            <label>System Serviced / Mechanical Task</label>
+            <input type="text" id="task" class="form-control" placeholder="e.g., Replaced compressor, freon recharge" required>
+            
+          {% elif target_trade == "Site Foreman / Crew Boss" %}
+            <label>Crew Management / Site Task</label>
+            <input type="text" id="task" class="form-control" placeholder="e.g., Directed crew of 5, ran safety meeting" required>
+            
+          {% else %}
+            <label>Primary Tool / Task</label>
+            <input type="text" id="task" class="form-control" placeholder="e.g., Pouring concrete, running conduit" required>
+          {% endif %}
+        </div>
+
+        <div class="step-header" style="margin-top: 30px;">2. The Proof</div>
+        <div class="form-group">
+          <label>Snap a photo of the completed work.</label>
+          <div class="camera-btn-wrapper">
+            <div class="camera-btn" id="camera-label">[ OPEN CAMERA ]</div>
+            <input type="file" accept="image/*" capture="environment" id="work-photo" onchange="updateCameraLabel()">
+          </div>
+        </div>
+
+        <div class="step-header" style="margin-top: 30px;">3. The Engine Check</div>
+        <div class="form-group">
+          <label>How did you use your Biblical Engine today? (Diligence, Longsuffering, etc.)</label>
+          <input type="text" id="engine-check" class="form-control" placeholder="e.g., Unloaded the truck in 100° heat without quitting." required>
+        </div>
+
+        <button type="submit" class="submit-log-btn">LOCK LEDGER</button>
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    function updateCameraLabel() {
+      const input = document.getElementById('work-photo');
+      if (input.files && input.files.length > 0) {
+        document.getElementById('camera-label').innerText = "[ PHOTO CAPTURED ]";
+        document.getElementById('camera-label').style.color = "#c8d8c8";
+        document.getElementById('camera-label').style.borderColor = "#c8d8c8";
+      }
+    }
+
+    document.getElementById('shift-log-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append('hours', document.getElementById('hours').value);
+      formData.append('task', document.getElementById('task').value);
+      formData.append('engine_check', document.getElementById('engine-check').value);
+
+      const photoFile = document.getElementById('work-photo').files[0];
+      if (photoFile) {
+        formData.append('photo', photoFile);
+      }
+
+      try {
+        const response = await fetch('/tasks/submit', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          alert("Ledger locked! Points have been awarded.");
+          window.location.href = "/"; 
+        } else {
+          const errData = await response.json();
+          alert("Error saving shift: " + errData.detail);
+        }
+      } catch (error) {
+        alert("Failed to connect to the server.");
+      }
+    });
+  </script>
+  <footer class="app-footer">
+    <a href="/privacy">📜 System Privacy Decree & Data Transparency Mandate</a>
+  </footer>
+</body>
+</html>

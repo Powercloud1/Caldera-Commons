@@ -1,0 +1,10 @@
+.env
+*.pyc
+__pycache__/
+.pytest_cache/
+.venv/
+web/.venv/
+web/__pycache__/
+web/.pytest_cache/
+web/audit.log
+*.tar.gz

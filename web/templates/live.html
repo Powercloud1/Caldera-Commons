@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live at Caldera Command</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div style="background-color: #1a1a1a; padding: 10px 20px; text-align: right; border-bottom: 1px solid #333; font-family: monospace; font-size: 14px;">
+      <span style="color: #888;">Logged in as:</span> 
+      <span style="color: #4CAF50; font-weight: bold; margin-right: 15px;">{{ user_email }}</span>
+      <a href="/logout" style="color: #f44336; text-decoration: none; padding: 4px 8px; border: 1px solid #f44336; border-radius: 3px;">Clock Out</a>
+  </div>
+
+  <nav class="navbar">
+    <a href="/">🏡 Dashboard</a>
+    <a href="/chores">🛡️ Chores</a>
+    <a href="/skills">⚡ Skills</a>
+    <a href="/tasks">🛠️ Task Hub</a>
+    <a href="/community">🏛️ Community Board</a>
+    <a href="/live" class="active">Live at Caldera Command</a>
+    {% if user_is_director %}
+      <a href="/director-trends">📊 Director Portal</a>
+    {% endif %}
+  </nav>
+
+  <div class="container">
+    <h1>Live at Caldera Command</h1>
+    <p class="tagline">Real-time server telemetry and broadcast feed from the terminal node.</p>
+    
+    <div class="word-card" style="border-color: #5aad7a; background: #0f1318; margin-bottom: 20px;">
+      <div class="word-tone" style="color: #5aad7a;">Station Mandate</div>
+      <div class="word-verse">
+        "Let your light shine before others, so that they may see your good works and give glory to your Father who is in heaven." — Matthew 5:16
+      </div>
+    </div>
+
+    <!-- Flex Container for Layout: Disclaimer Left, Video Right -->
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; margin-bottom: 20px;">
+      
+      <!-- Left Column: The Disclaimer -->
+      <div style="flex: 1 1 250px; background: #0d1117; border: 1px solid #f44336; border-radius: 4px; padding: 15px; font-size: 13px; color: #c9d1d9; font-family: sans-serif;">
+        <h3 style="color: #f44336; margin-top: 0; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px;">
+          🚨 Official Channel Disclosure
+        </h3>
+        <p style="margin-bottom: 10px; line-height: 1.4;"><strong>18+ MATURE AUDIENCES:</strong><br> Unfiltered broadcast. Expect explicit language and mature themes.</p>
+        <p style="margin-bottom: 10px; line-height: 1.4;"><strong>24/7 REALITY:</strong><br> Real living space. No nudity, but casual attire and mundane routines are broadcast.</p>
+        <p style="margin-bottom: 10px; line-height: 1.4;"><strong>RAW COMMENTARY:</strong><br> Unconventional, non-traditional biblical reactions. Viewer discretion advised.</p>
+        <p style="margin-bottom: 0; line-height: 1.4;"><strong>NOT THERAPY:</strong><br> Peer accountability space, not a substitute for professional care.</p>
+      </div>
+
+      <!-- Right Column: Video Player & YouTube Playlist Container -->
+      <div style="flex: 3 1 600px; display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Native HLS Live Broadcast Feed -->
+        <div style="background: #161b22; border: 1px solid #30363d; padding: 10px; border-radius: 4px; display: flex; justify-content: center;">
+          <video id="caldera-broadcast" controls autoplay muted 
+                 style="width: 100%; max-width: 1280px; border-radius: 4px; background: #000;">
+          </video>
+        </div>
+
+        <!-- Embedded Archive/Telemetry Playlist -->
+        <div style="background: #161b22; border: 1px solid #30363d; padding: 15px; border-radius: 4px;">
+          <h3 style="color: #5aad7a; margin-top: 0; margin-bottom: 12px; font-size: 14px; font-family: monospace; text-transform: uppercase; border-bottom: 1px solid #30363d; padding-bottom: 8px;">
+            🗄️ Broadcast Archives & Media
+          </h3>
+          <div style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%;">
+            <iframe 
+              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; border-radius: 4px;"
+              src="https://www.youtube.com/embed/Qzw6A2WC5Qo?list=PLBXeS3Zwrbgo" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="card" style="margin-top: 20px; border-left: 4px solid #5aad7a;">
+      <div class="label">🎙️ AI Podcast Talking Points Generator</div>
+      <p style="color: #8b949e; margin-top: 8px;">Use AI to generate talking points for your episode, powered by your community's leaderboard and strategy board.</p>
+      <form id="podcast-form" style="margin-top: 15px;">
+        <textarea id="podcast-topic" placeholder="Enter your podcast topic or theme..." style="width: 100%; padding: 10px; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 4px; font-family: monospace; font-size: 13px; min-height: 60px; resize: vertical;"></textarea>
+        <button type="submit" style="margin-top: 10px; background: #5aad7a; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Generate Talking Points</button>
+      </form>
+      <div id="podcast-result" style="margin-top: 15px; display: none; background: #0d1117; border: 1px solid #30363d; padding: 12px; border-radius: 4px;">
+        <div style="color: #8b949e; font-size: 12px; margin-bottom: 8px;">✨ AI-Generated Talking Points:</div>
+        <div id="podcast-content" style="white-space: pre-wrap; color: #c9d1d9; line-height: 1.6; font-family: monospace; font-size: 13px;"></div>
+      </div>
+    </div>
+
+<!-- HLS Streaming Engine Context -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+    <script>
+      // Podcast talking points generator
+      document.getElementById('podcast-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const topic = document.getElementById('podcast-topic').value.trim();
+        if (!topic) {
+          alert('Please enter a topic');
+          return;
+        }
+        
+        const button = e.target.querySelector('button');
+        button.disabled = true;
+        button.textContent = 'Generating (this may take up to 60 seconds)...';
+        
+        try {
+          const response = await fetch('/api/generate-podcast-talking-points', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic })
+          });
+          
+          const data = await response.json();
+          if (response.ok) {
+            document.getElementById('podcast-content').textContent = data.talking_points;
+            document.getElementById('podcast-result').style.display = 'block';
+          } else {
+            alert('Error: ' + (data.error || 'Unknown error'));
+          }
+        } catch (err) {
+          alert('Network error: ' + err.message);
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Generate Talking Points';
+        }
+      });
+
+      var video = document.getElementById('caldera-broadcast');
+      var streamUrl = '/hls/live/stream/index.m3u8';
+
+      if (Hls.isSupported()) {
+        var hlsConfig = {
+          liveSyncDurationCount: 2,       
+          liveMaxLatencyDurationCount: 5, 
+          maxLiveSyncPlaybackRate: 1.2,   
+          enableWorker: true              
+        };
+
+        var hls = new Hls(hlsConfig);
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+          video.play();
+        });
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.log("Network error, trying to recover...");
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.log("Media error, trying to recover...");
+                hls.recoverMediaError();
+                break;
+              default:
+                hls.destroy();
+                break;
+            }
+          }
+        });
+
+      } 
+      else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = streamUrl;
+        video.addEventListener('loadedmetadata', function() {
+          video.play();
+        });
+      }
+    </script>
+
+    <footer class="app-footer">
+      <a href="/privacy">📜 System Privacy Decree & Data Transparency Mandate</a>
+    </footer>
+  </div>
+</body>
+</html>

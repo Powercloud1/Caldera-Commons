@@ -1,0 +1,61 @@
+services:
+  web:
+    build: ./web
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    expose:
+      - "8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./web:/app
+    environment:
+      - NODE_STATUS=ONLINE
+      - DATABASE_URL=postgresql://demo:demo_password@db:5432/demo_db
+      - OLLAMA_MODEL=CalderaAI:latest
+      - OLLAMA_URL=http://host.docker.internal:11434/api/generate
+      - DIRECTOR_EMAILS=director@example.com
+      - GOOGLE_CLIENT_ID=demo-google-client-id
+      - GOOGLE_CLIENT_SECRET=demo-google-client-secret
+      - REDIRECT_URI=https://example.com/auth
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; r=urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2); sys.exit(0 if r.getcode()==200 else 1)\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=demo
+      - POSTGRES_PASSWORD=demo_password
+      - POSTGRES_DB=demo_db
+
+  proxy:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - web
+      - mediamtx # Tells Nginx to wait for the media server
+
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: mediamtx
+    restart: always
+    ports:
+      - "1935:1935" # Ingest port for your local FFmpeg command
+    # Nginx will communicate with this container internally on port 8888
+
+volumes:
+  postgres_data:

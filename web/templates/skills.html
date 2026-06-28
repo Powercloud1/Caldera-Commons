@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A New Mission for You - Caldera Commons</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+  .profile-btn {
+    background: #0d1117; border: 1px solid #30363d; color: #8b949e; padding: 20px;
+    border-radius: 4px; cursor: pointer; font-family: monospace; font-weight: bold;
+    font-size: 1rem; text-transform: uppercase; transition: 0.2s;
+  }
+  .profile-btn:hover { background: #161b22; border-color: #58a6ff; color: #58a6ff; }
+  .profile-btn.active { background: #1f6feb; border-color: #388bfd; color: #ffffff; }
+  
+  .output-panel {
+    display: none; background: #161b22; border: 1px solid #30363d; border-left: 4px solid #5aad7a;
+    padding: 25px; border-radius: 4px; margin-top: 30px; animation: fadeIn 0.3s ease-in-out;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .output-row { margin-bottom: 15px; }
+  .output-label { color: #8b949e; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+  .output-value { color: #c8d8c8; font-size: 1.2rem; font-weight: bold; margin-top: 5px; }
+  .engine-val { color: #5aad7a; }
+  .trade-val { color: #58a6ff; }
+</style>
+</head>
+<body>
+  <div style="background-color: #1a1a1a; padding: 10px 20px; text-align: right; border-bottom: 1px solid #333; font-family: monospace; font-size: 14px;">
+        <span style="color: #888;">Logged in as:</span> 
+        <span style="color: #4CAF50; font-weight: bold; margin-right: 15px;">{{ user_email }}</span>
+        <span style="color: #58a6ff; font-weight: bold; margin-right: 15px;">Points: {{ total_points }}</span>
+        <a href="/logout" style="color: #f44336; text-decoration: none; padding: 4px 8px; border: 1px solid #f44336; border-radius: 3px;">Clock Out</a>
+  </div>
+  
+  <nav class="navbar">
+    <a href="/">🏡 Dashboard</a>
+    <a href="/chores">🛡️ Chores</a>
+    <a href="/skills" class="active">⚡ Skills</a>
+    <a href="/tasks">🛠️ Task Hub</a>
+    <a href="/community">🏛️ Community Board</a>
+    <a href="/live">Live at Caldera Command</a>
+    {% if user_is_director %}
+      <a href="/director-trends">📊 Director Portal</a>
+    {% endif %}
+  </nav>
+
+  <div class="container">
+    <div style="margin-bottom: 25px;">
+      <a href="/" class="nav-btn secondary" style="display: inline-block; width: auto; padding: 8px 12px; font-size: 0.8rem;">&larr; Back to Dashboard</a>
+    </div>
+
+    <h1>A New Mission For You</h1>
+    <p class="tagline">
+      Romans 12:2 states, "Do not be conformed to this world, but be transformed by the renewing of your mind."
+    </p>
+
+    <h2 style="border: none; margin-bottom: 0;">Select your core transformative strength:</h2>
+    <div class="profile-grid">
+      <button class="profile-btn" onclick="revealMatrix('overcomer', this)">The Overcomer</button>
+      <button class="profile-btn" onclick="revealMatrix('strategist', this)">The Strategist</button>
+      <button class="profile-btn" onclick="revealMatrix('technician', this)">The Technician</button>
+      <button class="profile-btn" onclick="revealMatrix('unifier', this)">The Unifier</button>
+    </div>
+
+    <div id="output-panel" class="output-panel">
+      <div class="output-row">
+        <div class="output-label">Core Strength</div>
+        <div class="output-value" id="out-reality">--</div>
+      </div>
+      <div class="output-row">
+        <div class="output-label">Biblical Engine</div>
+        <div class="output-value engine-val" id="out-engine">--</div>
+      </div>
+      <div class="output-row">
+        <div class="output-label">Target Trade</div>
+        <div class="output-value trade-val" id="out-trade">--</div>
+      </div>
+      <div style="margin-top: 25px;">
+        <button onclick="lockInTrade()" class="nav-btn" style="display: inline-block; width: auto; border: none; cursor: pointer; font-size: 1rem;">Lock In Trade & Go to Task Hub &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const matrix = {
+      'overcomer': { reality: "THE OVERCOMER", engine: "LONGSUFFERING (Perseverance)", trade: "Logistics / Dispatch" },
+      'strategist': { reality: "THE STRATEGIST", engine: "DISCERNMENT (Wisdom)", trade: "Sales / Client Relations" },
+      'technician': { reality: "THE TECHNICIAN", engine: "DILIGENCE (Determination)", trade: "HVAC / Mechanics" },
+      'unifier': { reality: "THE UNIFIER", engine: "BROTHERHOOD (Loyalty)", trade: "Site Foreman / Crew Boss" }
+    };
+
+    function revealMatrix(profile, btnElement) {
+      // Reset active states
+      document.querySelectorAll('.profile-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+
+      // Populate data
+      const data = matrix[profile];
+      document.getElementById('out-reality').innerText = data.reality;
+      document.getElementById('out-engine').innerText = data.engine;
+      document.getElementById('out-trade').innerText = data.trade;
+
+      // Reveal panel
+      document.getElementById('output-panel').style.display = 'block';
+    }
+    
+    async function lockInTrade() {
+      const selectedTrade = document.getElementById('out-trade').innerText;
+      
+      if (selectedTrade === "--") {
+        alert("Please select a core strength first.");
+        return;
+      }
+
+      // Send the selection to your new Python route
+      try {
+        const response = await fetch('/skills/set-trade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trade: selectedTrade })
+        });
+
+        if (response.ok) {
+          // Success! Now redirect them to the Task Hub
+          window.location.href = "/tasks";
+        } else {
+          alert("Error locking in trade. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Failed to connect to the server.");
+      }
+    }
+  </script>
+
+  <footer class="app-footer">
+    <a href="/privacy">📜 System Privacy Decree & Data Transparency Mandate</a>
+  </footer>
+</body>
+</html>

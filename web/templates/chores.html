@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temple Building - Caldera Commons</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .chore-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+  .chore-item {
+    background: #161b22; border: 1px solid #30363d; padding: 15px 20px;
+    border-radius: 4px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .chore-title { font-size: 1rem; color: #58a6ff; font-weight: bold; }
+  .chore-desc { font-size: 0.8rem; color: #8b949e; margin-top: 6px; }
+  .chore-points { font-size: 0.75rem; color: #d29922; border: 1px solid #d29922; padding: 2px 6px; border-radius: 3px; margin-left: 10px; }
+  .check-btn {
+    background: #1a2a1a; color: #5aad7a; border: 1px solid #2a4a2a;
+    padding: 10px 18px; border-radius: 4px; cursor: pointer;
+    font-family: monospace; font-weight: bold; transition: 0.2s;
+  }
+  .check-btn:hover { background: #2a4a2a; border-color: #5aad7a; }
+  .check-btn.done {
+    background: rgba(90, 173, 122, 0.1); color: #5aad7a; border-color: #5aad7a; pointer-events: none;
+  }
+
+  .creation-panel {
+    background: #0d1117; border: 1px dashed #30363d; padding: 20px;
+    border-radius: 4px; margin-bottom: 40px;
+  }
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; font-size: 0.85rem; color: #8b949e; margin-bottom: 5px; }
+  .form-control {
+    width: 100%; padding: 10px; background: #161b22; border: 1px solid #30363d;
+    color: #c8d8c8; border-radius: 4px; font-family: monospace; box-sizing: border-box;
+  }
+  .submit-btn {
+    background: #1f6feb; color: white; border: none; padding: 10px 20px;
+    border-radius: 4px; cursor: pointer; font-family: monospace; font-weight: bold;
+  }
+  .submit-btn:hover { background: #388bfd; }
+
+  #reward-banner {
+    display: none; background: #1a2a1a; border: 1px solid #5aad7a;
+    color: #5aad7a; padding: 15px 20px; border-radius: 4px; margin-bottom: 25px;
+    text-align: center; font-weight: bold; font-size: 0.95rem; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+  <div style="background-color: #1a1a1a; padding: 10px 20px; text-align: right; border-bottom: 1px solid #333; font-family: monospace; font-size: 14px;">
+        <span style="color: #888;">Logged in as:</span> 
+        <span style="color: #4CAF50; font-weight: bold; margin-right: 15px;">{{ user_email }}</span>
+        <span style="color: #58a6ff; font-weight: bold; margin-right: 15px;" id="total-points-display">Points: {{ total_points }}</span>
+        <a href="/logout" style="color: #f44336; text-decoration: none; padding: 4px 8px; border: 1px solid #f44336; border-radius: 3px;">Clock Out</a>
+  </div>
+  </div> <nav class="navbar">
+    <a href="/">🏡 Dashboard</a>
+    <a href="/chores" class="active">🛡️ Chores</a>
+    <a href="/skills">⚡ Skills</a>
+    <a href="/tasks">🛠️ Task Hub</a>
+    <a href="/community">🏛️ Community Board</a>
+    <a href="/live">Live at Caldera Command</a>
+    {% if user_is_director %}
+      <a href="/director-trends">📊 Director Portal</a>
+    {% endif %}
+  </nav>
+  <div class="container">
+    <div style="margin-bottom: 25px;">
+      <a href="/" class="nav-btn secondary" style="display: inline-block; width: auto; padding: 8px 12px; font-size: 0.8rem;">&larr; Back to Dashboard</a>
+    </div>
+
+    <h1>Your Holy Temple</h1>
+    <p class="tagline">1 Corinthians 6:19-20: "Do you not know that your bodies are temples of the Holy Spirit, who is in you, whom you have received from God? You are not your own; you were bought at a price. Therefore honor God with your bodies."</p>
+
+    <div id="reward-banner"></div>
+
+    {% for category, chores in grouped_chores.items() %}
+    <h2>{{ category }}</h2>
+    <div class="chore-list">
+      {% for chore in chores %}
+      <div class="chore-item" id="chore-item-{{ chore.id }}">
+        <div>
+          <div class="chore-title">{{ chore.title }} <span class="chore-points">{{ chore.points }} pts</span></div>
+          {% if chore.description %}
+          <div class="chore-desc">{{ chore.description }}</div>
+          {% endif %}
+        </div>
+        
+        <button class="check-btn {% if chore.is_completed_today %}done{% endif %}" 
+                onclick="checkInChore({{ chore.id }}, this)">
+          {% if chore.is_completed_today %}
+            Completed
+          {% else %}
+            Check In
+          {% endif %}
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card" style="margin-bottom: 30px;">
+      <p style="color: #8b949e; margin: 0; text-align: center;">No chores configured yet. Use the form below to start.</p>
+    </div>
+    {% endfor %}
+
+    <div class="creation-panel">
+      <h2 style="margin-top: 0; border: none; color: #8fa88f;">+ Establish a New Habit</h2>
+      <form id="create-chore-form">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="category_id" class="form-control" required>
+            <option value="1">Spiritual Formations</option>
+            <option value="2">Household Labor</option>
+            <option value="3">Self-Care</option>
+            <option value="4">Neighborly Service</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Habit Title</label>
+          <input type="text" id="title" class="form-control" placeholder="e.g., Read 1 Chapter of Proverbs" required>
+        </div>
+        <div class="form-group">
+          <label>Short Description (Optional)</label>
+          <input type="text" id="description" class="form-control" placeholder="e.g., Do this with morning coffee.">
+        </div>
+        <div class="form-group">
+          <label>Difficulty / Point Value</label>
+          <select id="points" class="form-control" required>
+            <option value="10">Easy (10 pts) - e.g., Make the bed</option>
+            <option value="25">Medium (25 pts) - e.g., Do the dishes</option>
+            <option value="50">Hard (50 pts) - e.g., Clean the garage</option>
+          </select>
+        </div>
+        <button type="submit" class="submit-btn">Save Habit</button>
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    async function checkInChore(choreId, btnElement) {
+        const originalText = btnElement.innerText;
+        btnElement.innerText = "Logging...";
+        
+        try {
+            const response = await fetch(`/chores/${choreId}/check-in`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                btnElement.classList.add('done');
+                btnElement.innerText = "Completed";
+                btnElement.disabled = true;
+
+                // Update the total points display instantly
+                document.getElementById('total-points-display').innerText = "Points: " + data.new_total;
+
+                // Show the Scripture Reward Banner if they earned it
+                if (data.reward_scripture) {
+                    const banner = document.getElementById('reward-banner');
+                    banner.innerText = data.reward_scripture;
+                    banner.style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            } else {
+                btnElement.innerText = originalText;
+                alert(data.detail || "Unable to log chore.");
+            }
+        } catch (error) {
+            console.error("Error logging chore:", error);
+            btnElement.innerText = originalText;
+        }
+    }
+
+    document.getElementById('create-chore-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const payload = {
+            category_id: parseInt(document.getElementById('category_id').value),
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            points: parseInt(document.getElementById('points').value)
+        };
+
+        try {
+            const response = await fetch('/chores/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert("Failed to create habit. Please check your inputs.");
+            }
+        } catch (error) {
+            console.error("Error creating chore:", error);
+        }
+    });
+  </script>
+  <footer class="app-footer">
+    <a href="/privacy">📜 System Privacy Decree & Data Transparency Mandate</a>
+  </footer>
+</div>
+</body>
+</html>

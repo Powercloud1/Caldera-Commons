@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Director Trend Center</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div style="background-color: #1a1a1a; padding: 10px 20px; text-align: right; border-bottom: 1px solid #333; font-family: monospace; font-size: 14px;">
+      <span style="color: #888;">Director portal:</span> 
+      <span style="color: #4CAF50; font-weight: bold; margin-right: 15px;">{{ user_email }}</span>
+      <a href="/logout" style="color: #f44336; text-decoration: none; padding: 4px 8px; border: 1px solid #f44336; border-radius: 3px;">Clock Out</a>
+  </div>
+
+  <nav class="navbar">
+    <a href="/">🏡 Dashboard</a>
+    <a href="/director-trends" class="active">📊 Director Trends</a>
+  </nav>
+
+  <div class="container">
+    <h1>Director Trend Center</h1>
+    <p class="tagline">Advanced crew analytics for leadership oversight. This page is for site director use only.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="label">Hours Logged This Week</div>
+        <div class="metric">{{ trend_summary.total_hours_week }}</div>
+        <div class="sublabel">Across {{ trend_summary.shifts_week }} shifts</div>
+      </div>
+      <div class="card">
+        <div class="label">Active Crew Days</div>
+        <div class="metric">{{ trend_summary.active_days }}</div>
+        <div class="sublabel">Days with logged shifts</div>
+      </div>
+      <div class="card">
+        <div class="label">Avg Hours / Shift</div>
+        <div class="metric">{{ trend_summary.avg_hours_per_shift }}</div>
+        <div class="sublabel">Last 7 days</div>
+      </div>
+      <div class="card">
+        <div class="label">Week-over-Week Change</div>
+        <div class="metric {{ 'positive' if trend_summary.week_change >= 0 else 'negative' }}">{{ trend_summary.week_change }}</div>
+        <div class="sublabel">Compared to prior week</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
+      <div class="card" style="flex: 1 1 300px;">
+        <div class="label">Top Tasks This Month</div>
+        <ul style="margin: 0; padding-left: 18px; color: #c9d1d9;">
+          {% for task in trend_summary.top_tasks %}
+            <li>{{ task.task }} — {{ task.count }} times</li>
+          {% else %}
+            <li>No tasks logged yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="card" style="flex: 1 1 300px;">
+        <div class="label">Recent Strategy Notes</div>
+        <ul style="margin: 0; padding-left: 18px; color: #c9d1d9;">
+          {% for strategy in trend_summary.recent_strategies %}
+            <li>{{ strategy.content }}</li>
+          {% else %}
+            <li>No strategy notes yet.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
+      <div class="card" style="flex: 1 1 300px;">
+        <div class="label">Morning Talking Points</div>
+        {% if morning_insight %}
+          <div style="white-space: pre-wrap; color: #c9d1d9; line-height: 1.5;">{{ morning_insight.content }}</div>
+        {% else %}
+          <p style="color: #8b949e;">No morning insight has been generated yet.</p>
+        {% endif %}
+      </div>
+      <div class="card" style="flex: 1 1 300px;">
+        <div class="label">Evening Talking Points</div>
+        {% if evening_insight %}
+          <div style="white-space: pre-wrap; color: #c9d1d9; line-height: 1.5;">{{ evening_insight.content }}</div>
+        {% else %}
+          <p style="color: #8b949e;">No evening insight has been generated yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px; border-left: 4px solid #f44336;">
+      <div class="label">🔐 Sentinel Queue — Security Actions Pending Review</div>
+      {% if pending_actions %}
+        <div style="margin-top: 12px;">
+          {% for action in pending_actions %}
+            <div style="background: #262626; padding: 12px; margin-bottom: 10px; border-radius: 4px; border-left: 3px solid #f44336;">
+              <div style="display: flex; justify-content: space-between; align-items: start; gap: 10px;">
+                <div style="flex: 1;">
+                  <div style="color: #c9d1d9; font-weight: bold;">{{ action.summary }}</div>
+                  <div style="color: #8b949e; font-size: 12px; margin-top: 4px;">
+                    IP: <span style="color: #f48771;">{{ action.ip_address or 'N/A' }}</span> | 
+                    Action: <span style="color: #79c0ff;">{{ action.action_type.upper() }}</span>
+                  </div>
+                  <div style="color: #8b949e; font-size: 11px; margin-top: 2px;">Queued: {{ action.created_at }}</div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  {% if action.action_type == 'block' and action.ip_address %}
+                    <button onclick="applySentinelAction({{ action.id }})" style="background: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: bold;">Apply</button>
+                  {% endif %}
+                  <button onclick="dismissSentinelAction({{ action.id }})" style="background: #444; color: #c9d1d9; border: 1px solid #666; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12px;">Dismiss</button>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="color: #8b949e; margin-top: 8px;">No pending sentinel actions. Perimeter is clear.</p>
+      {% endif %}
+    </div>
+
+    <script>
+      async function applySentinelAction(actionId) {
+        if (!confirm('Apply firewall block for this IP?')) return;
+        const response = await fetch(`/api/sentinel/apply/${actionId}`, { method: 'POST' });
+        const result = await response.json();
+        if (response.ok) {
+          alert(`Blocked: ${result.ip_address}`);
+          location.reload();
+        } else {
+          alert(`Error: ${result.detail}`);
+        }
+      }
+      async function dismissSentinelAction(actionId) {
+        const response = await fetch(`/api/sentinel/dismiss/${actionId}`, { method: 'POST' });
+        if (response.ok) {
+          location.reload();
+        } else {
+          alert('Error dismissing action');
+        }
+      }
+    </script>
+
+    <footer class="app-footer">
+      <a href="/privacy">📜 System Privacy Decree & Data Transparency Mandate</a>
+    </footer>
+  </div>
+</body>
+</html>
