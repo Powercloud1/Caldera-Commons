@@ -4,12 +4,24 @@ This is the presentation-ready version of Caldera Commons: a faith-centered stew
 
 The copy in this folder is sanitized for sharing. Real credentials, personal email addresses, and live production values have been replaced with demo placeholders in [.env.example](.env.example).
 
+## Purpose
+
+Caldera Commons is a Christian activity tracker and stewardship ecosystem. It helps people rebuild structure after chaos by making daily work visible, measurable, and encouraging. Chores, work hours, service, and shared wisdom all become part of a larger story: men who have outgrown drugs and crime repurposing their skills into productive, faithful living.
+
+The leaderboard is not about vanity. It is about consistency, discipline, and momentum. The live stream and podcast tools give the Director a way to speak encouragement in real time, while the Water Initiative keeps the mission bigger than survival. That larger vision ties personal restoration to stewardship of the land, productive work, and a reason to keep building something useful for the community and the world.
+
+In short: this ecosystem exists to turn testimony into structure, structure into service, and service into a witness that God can redeem a life and make it fruitful.
+
 ## What it includes
 
 - FastAPI web app with login, dashboard, community board, tasks, skills, live broadcast, and leadership views
 - Ollama-powered talking points generator for live broadcasts
 - Docker Compose setup for local demonstration
 - Demo-mode login fallback so the presentation copy can be shown without real Google OAuth credentials
+
+## One-Paragraph Pitch
+
+Caldera Commons is a faith-based stewardship platform that helps men build productive lives after recovery by tracking work hours, chores, and service while also providing live broadcast and AI-generated talking points for encouragement and discipleship. The system turns progress into visible momentum, links daily responsibility to a larger mission, and gives the community a practical way to celebrate growth, accountability, and purpose.
 
 ## Quick Start
 
