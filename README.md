@@ -23,6 +23,30 @@ In short: this ecosystem exists to turn testimony into structure, structure into
 
 Caldera Commons is a faith-based stewardship platform that helps men build productive lives after recovery by tracking work hours, chores, and service while also providing live broadcast and AI-generated talking points for encouragement and discipleship. The system turns progress into visible momentum, links daily responsibility to a larger mission, and gives the community a practical way to celebrate growth, accountability, and purpose.
 
+## Ollama Setup (Required for AI Features)
+
+The talking points generator and director insights require a local [Ollama](https://ollama.com) instance running the `CalderaAI` model.
+
+1. Install Ollama on your host machine from https://ollama.com/download
+
+2. Create a file named `CalderaModel` (no extension) with your system prompt, then build and register it:
+
+```bash
+ollama create CalderaAI -f ./CalderaModel
+```
+
+3. Verify it is running:
+
+```bash
+ollama list
+```
+
+You should see `CalderaAI:latest` in the list.
+
+4. Ollama must be running on the host while Docker is up. The app reaches it at `http://host.docker.internal:11434/api/generate`. Set `OLLAMA_URL` in your `.env` if your host address differs.
+
+> **Note:** Ollama runs entirely on your local hardware. On a CPU-only machine (no GPU), allow up to 60 seconds for model responses. This is expected behavior.
+
 ## Quick Start
 
 1. Copy the example environment file:
@@ -31,9 +55,13 @@ Caldera Commons is a faith-based stewardship platform that helps men build produ
 cp .env.example .env
 ```
 
-2. Start the stack:
+2. Start Ollama and the app:
 
 ```bash
+# In one terminal — start Ollama
+ollama serve
+
+# In another terminal — start the Docker stack
 docker compose up --build
 ```
 
