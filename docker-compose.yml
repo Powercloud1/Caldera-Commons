@@ -10,13 +10,15 @@ services:
       - ./web:/app
     environment:
       - NODE_STATUS=ONLINE
-      - DATABASE_URL=postgresql://demo:demo_password@db:5432/demo_db
-      - OLLAMA_MODEL=CalderaAI:latest
-      - OLLAMA_URL=http://host.docker.internal:11434/api/generate
-      - DIRECTOR_EMAILS=director@example.com
-      - GOOGLE_CLIENT_ID=demo-google-client-id
-      - GOOGLE_CLIENT_SECRET=demo-google-client-secret
-      - REDIRECT_URI=https://example.com/auth
+      - DATABASE_URL=${DATABASE_URL}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-CalderaAI:latest}
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434/api/generate}
+      - DIRECTOR_EMAILS=${DIRECTOR_EMAILS:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - REDIRECT_URI=${REDIRECT_URI}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - SESSION_HTTPS_ONLY=${SESSION_HTTPS_ONLY:-true}
     depends_on:
       - db
     healthcheck:
@@ -32,9 +34,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=demo
-      - POSTGRES_PASSWORD=demo_password
-      - POSTGRES_DB=demo_db
+      - POSTGRES_USER=${POSTGRES_USER:-caldera}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-calderadb}
 
   proxy:
     image: nginx:latest
@@ -51,10 +53,9 @@ services:
 
   mediamtx:
     image: bluenviron/mediamtx:latest
-    container_name: mediamtx
     restart: always
     ports:
-      - "1935:1935" # Ingest port for your local FFmpeg command
+      - "${MEDIAMTX_RTMP_PORT:-1935}:1935" # Ingest port for your local FFmpeg command
     # Nginx will communicate with this container internally on port 8888
 
 volumes:

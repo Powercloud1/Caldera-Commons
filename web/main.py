@@ -46,7 +46,14 @@ async def _health_check():
     return JSONResponse(status_code=200, content={"status": "ok"})
 models.Base.metadata.create_all(bind=engine)
 
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET_KEY", "demo_session_secret_key"))
+session_https_only = os.getenv("SESSION_HTTPS_ONLY", "true").strip().lower() in {"1", "true", "yes", "on"}
+session_secret = os.getenv("SESSION_SECRET", "change-this-session-secret")
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=session_secret,
+    same_site="lax",
+    https_only=session_https_only,
+)
 app.mount("/static", StaticFiles(directory=os.path.join(SCRIPT_DIR, "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(SCRIPT_DIR, "templates"))
 
@@ -468,9 +475,9 @@ async def start_director_insight_scheduler():
     thread.start()
 
 # ── Google OAuth Registration ─────────────────────────────────────────────────
+google_client_id = os.getenv("GOOGLE_CLIENT_ID", "")
+google_client_secret = os.getenv("GOOGLE_CLIENT_SECRET", "")
 oauth = OAuth()
-google_client_id = os.getenv("GOOGLE_CLIENT_ID", "demo-google-client-id")
-google_client_secret = os.getenv("GOOGLE_CLIENT_SECRET", "demo-google-client-secret")
 oauth.register(
     name='google',
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
@@ -478,10 +485,6 @@ oauth.register(
     client_secret=google_client_secret,
     client_kwargs={'scope': 'openid email profile'}
 )
-
-
-def is_demo_oauth_mode() -> bool:
-    return google_client_id.startswith("demo-") or google_client_secret.startswith("demo-")
 
 @app.exception_handler(SecurityValidationError)
 async def security_validation_exception_handler(request: Request, exc: SecurityValidationError):
@@ -511,32 +514,19 @@ async def request_validation_exception_handler(request: Request, exc: RequestVal
 
 # ── SECTION 1: Authentication Gateways ────────────────────────────────────────
 @app.get("/login")
-async def login(request: Request, db: Session = Depends(get_db)):
-    if is_demo_oauth_mode():
-        demo_email = os.getenv("DEMO_USER_EMAIL", "director@example.com")
-        demo_user = db.query(models.User).filter(models.User.email == demo_email).first()
-        if not demo_user:
-            demo_user = models.User(
-                email=demo_email,
-                google_id="demo-google-id",
-                total_points=120,
-                total_hours=48,
-                target_trade="Demo Steward",
-            )
-            db.add(demo_user)
-            db.commit()
-            db.refresh(demo_user)
-
-        request.session["user_id"] = demo_user.id
-        log_security_event(
-            action_type="authentication_attempt",
-            request=request,
-            result="demo_login",
-            detail={"provider": "demo", "email": demo_email},
+async def login(request: Request):
+    if not google_client_id or not google_client_secret:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."},
         )
-        return RedirectResponse(url="/")
 
-    redirect_uri = os.getenv("REDIRECT_URI")
+    # Clear stale oauth state keys before starting a new auth challenge.
+    for key in list(request.session.keys()):
+        if key.startswith("_state_"):
+            request.session.pop(key, None)
+
+    redirect_uri = os.getenv("REDIRECT_URI") or str(request.url_for("auth"))
     log_security_event(
         action_type="authentication_attempt",
         request=request,
@@ -547,12 +537,22 @@ async def login(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/auth")
 async def auth(request: Request, db: Session = Depends(get_db)):
-    if is_demo_oauth_mode():
-        return RedirectResponse(url="/")
-
     try:
         token = await oauth.google.authorize_access_token(request)
     except OAuthError as error:
+        if error.error == "mismatching_state":
+            for key in list(request.session.keys()):
+                if key.startswith("_state_"):
+                    request.session.pop(key, None)
+            log_security_event(
+                action_type="authentication_failure",
+                request=request,
+                result="oauth_state_mismatch",
+                status_code=303,
+                detail={"error": error.error},
+            )
+            return RedirectResponse(url="/login", status_code=303)
+
         log_security_event(
             action_type="authentication_failure",
             request=request,
@@ -1050,6 +1050,11 @@ Remember: These men have FINISHED recovery. They're already productive. Now they
 @app.get("/privacy")
 async def privacy_decree(request: Request):
     return templates.TemplateResponse("privacy.html", {"request": request})
+
+
+@app.get("/support")
+async def support_page(request: Request):
+    return templates.TemplateResponse("support.html", {"request": request})
 
 
 # ── SECTION 3: Action & Processing API Endpoints (POST) ───────────────────────

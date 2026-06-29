@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, text
 
 print("--- INITIATING CALDERA AI DATABASE PULSE CHECK ---")
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://demo:demo_password@db:5432/demo_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@db:5432/calderadb")
 engine = create_engine(DATABASE_URL)
 
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "CalderaAI:latest")

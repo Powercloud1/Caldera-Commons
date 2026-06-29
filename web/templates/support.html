@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support & Infrastructure Ministry - Caldera Commons</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .support-box {
+    background: #11161d;
+    border-left: 3px solid #5aad7a;
+    padding: 20px;
+    margin: 20px 0;
+    line-height: 1.6;
+  }
+  .section {
+    margin-top: 25px;
+    border-top: 1px dashed #30363d;
+    padding-top: 15px;
+  }
+  .donation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+  }
+  .donation-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 14px;
+  }
+  .donation-card .label {
+    color: #8b949e;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .donation-card .value {
+    color: #79c0ff;
+    font-size: 1.05rem;
+    font-weight: bold;
+  }
+  .ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .ledger-table th,
+  .ledger-table td {
+    border-bottom: 1px solid #30363d;
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+    font-size: 0.85rem;
+  }
+  .ledger-table th {
+    color: #8b949e;
+    background: #161b22;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.75rem;
+  }
+  .ledger-table tr:last-child td {
+    border-bottom: none;
+  }
+  .note {
+    color: #8b949e;
+    font-size: 0.8rem;
+    margin-top: 12px;
+  }
+  .status-pending {
+    color: #d29922;
+    font-weight: bold;
+  }
+  @media (max-width: 720px) {
+    .ledger-table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+  }
+</style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/">🏡 Dashboard</a>
+    <a href="/privacy">📜 Privacy</a>
+    <a href="/support" class="active">💝 Support & Donate</a>
+  </nav>
+
+  <div class="container" style="margin-top: 24px;">
+    <h1>Support & Infrastructure Ministry</h1>
+    <p class="tagline">Open-source service built from the trenches for community restoration and civic impact.</p>
+
+    <div class="support-box">
+      <strong>Thank you for checking out this project.</strong> This is a Christian application built from the trenches to serve the community, optimize resources, and keep our digital ecosystem open-source and free for everyone.
+    </div>
+
+    <div class="section">
+      <h2>The Donationware Model</h2>
+      <p>
+        We do not charge for this software. In alignment with spiritual principles, we operate entirely on voluntary,
+        free-will offerings. "God helps those who help themselves," and your support helps keep this infrastructure
+        alive, sustainable, and scalable.
+      </p>
+      <p>All donations go strictly toward <strong>Project Infrastructure Costs</strong>, including:</p>
+      <ul>
+        <li>Maintaining and licensing our primary development hardware (Node 0 Desktop)</li>
+        <li>Future server tower, rack system, and micro-data center development</li>
+        <li>Expanding the initiative to support civic projects (like regional reservoir ballot initiatives)</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>Ways to Support</h2>
+      <p>If this application has blessed you or your community, you can send a voluntary donation directly to the Director via Cash App or Venmo:</p>
+      <div class="donation-grid">
+        <div class="donation-card">
+          <div class="label">Cash App</div>
+          <div class="value">$powercloud1</div>
+        </div>
+        <div class="donation-card">
+          <div class="label">Venmo</div>
+          <div class="value">@powercloud</div>
+        </div>
+      </div>
+      <p class="note">Please include the memo "Infrastructure Support" so it is routed correctly into the public ledger.</p>
+    </div>
+
+    <div class="section">
+      <h2>Radical Transparency Ledger (Director's Log)</h2>
+      <p>In accordance with our commitment to absolute honesty and clean code, every single dollar received and spent is logged publicly right here. There are no secret accounts or grey areas.</p>
+
+      <table class="ledger-table" aria-label="Transparency ledger">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Status / Receipt Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>[MM/DD/YYYY]</td>
+            <td>Incoming</td>
+            <td>Initial Community Seed Donation</td>
+            <td>+$0.00</td>
+            <td><span class="status-pending">[Pending]</span></td>
+          </tr>
+          <tr>
+            <td>[MM/DD/YYYY]</td>
+            <td>Outgoing</td>
+            <td>Node 0 Desktop Warranty Renewal</td>
+            <td>-$300.00</td>
+            <td><span class="status-pending">[Pending]</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="note">This ledger is updated regularly to ensure 100% accountability to our supporters, our community, and the mission.</p>
+    </div>
+
+    <p style="color: #6b7d6b; font-size: 0.75rem; text-align: center; margin-top: 40px; text-transform: uppercase;">
+      Infrastructure Support Ministry • Caldera Commons
+    </p>
+  </div>
+</body>
+</html>

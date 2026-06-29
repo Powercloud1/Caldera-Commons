@@ -1,10 +1,20 @@
-.env
-*.pyc
+# Python
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
 .pytest_cache/
+
+# Virtual environments
 .venv/
-web/.venv/
-web/__pycache__/
-web/.pytest_cache/
+venv/
+
+# Local env and logs
+.env
+*.log
 web/audit.log
-*.tar.gz
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

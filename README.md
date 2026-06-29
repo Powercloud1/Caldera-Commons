@@ -1,102 +1,110 @@
 # Caldera Commons Presentation
 
-This is the presentation-ready version of Caldera Commons: a faith-centered stewardship, accountability, and live broadcast platform built with FastAPI, PostgreSQL, Nginx, and Docker.
+Caldera Commons is a FastAPI + Postgres + Nginx + MediaMTX stack for community accountability, task tracking, and live media operations.
 
-The copy in this folder is sanitized for sharing. Real credentials, personal email addresses, and live production values have been replaced with demo placeholders in [.env.example](.env.example).
+## Stack
 
-## Purpose
+- FastAPI application in `web/`
+- PostgreSQL 15
+- Nginx reverse proxy
+- MediaMTX for ingest and stream routing
 
-Caldera Commons is a Christian activity tracker and stewardship ecosystem. It helps people rebuild structure after chaos by making daily work visible, measurable, and encouraging. Chores, work hours, service, and shared wisdom all become part of a larger story: men who have outgrown drugs and crime repurposing their skills into productive, faithful living.
+## Configure Environment
 
-The leaderboard is not about vanity. It is about consistency, discipline, and momentum. The live stream and podcast tools give the Director a way to speak encouragement in real time, while the Water Initiative keeps the mission bigger than survival. That larger vision ties personal restoration to stewardship of the land, productive work, and a reason to keep building something useful for the community and the world.
-
-In short: this ecosystem exists to turn testimony into structure, structure into service, and service into a witness that God can redeem a life and make it fruitful.
-
-## What it includes
-
-- FastAPI web app with login, dashboard, community board, tasks, skills, live broadcast, and leadership views
-- Ollama-powered talking points generator for live broadcasts
-- Docker Compose setup for local demonstration
-- Demo-mode login fallback so the presentation copy can be shown without real Google OAuth credentials
-
-## One-Paragraph Pitch
-
-Caldera Commons is a faith-based stewardship platform that helps men build productive lives after recovery by tracking work hours, chores, and service while also providing live broadcast and AI-generated talking points for encouragement and discipleship. The system turns progress into visible momentum, links daily responsibility to a larger mission, and gives the community a practical way to celebrate growth, accountability, and purpose.
-
-## Ollama Setup (Required for AI Features)
-
-The talking points generator and director insights require a local [Ollama](https://ollama.com) instance running the `CalderaAI` model.
-
-1. Install Ollama on your host machine from https://ollama.com/download
-
-2. Create a file named `CalderaModel` (no extension) with your system prompt, then build and register it:
-
-```bash
-ollama create CalderaAI -f ./CalderaModel
-```
-
-3. Verify it is running:
-
-```bash
-ollama list
-```
-
-You should see `CalderaAI:latest` in the list.
-
-4. Ollama must be running on the host while Docker is up. The app reaches it at `http://host.docker.internal:11434/api/generate`. Set `OLLAMA_URL` in your `.env` if your host address differs.
-
-> **Note:** Ollama runs entirely on your local hardware. On a CPU-only machine (no GPU), allow up to 60 seconds for model responses. This is expected behavior.
-
-## Quick Start
-
-1. Copy the example environment file:
+Copy the example file and provide your deployment values:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Start Ollama and the app:
+Required values in `.env`:
 
-```bash
-# In one terminal — start Ollama
-ollama serve
-
-# In another terminal — start the Docker stack
-docker compose up --build
-```
-
-3. Open the app in your browser.
-
-## Demo Mode
-
-If `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are left as demo values, the app uses a built-in demo login path so you can present the site without real OAuth keys.
-
-## Environment
-
-The demo environment file includes placeholders for:
-
+- `POSTGRES_PASSWORD`
 - `DATABASE_URL`
-- `SESSION_SECRET_KEY`
-- `OLLAMA_MODEL`
-- `OLLAMA_URL`
-- `DIRECTOR_EMAILS`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `REDIRECT_URI`
+- `SESSION_SECRET`
 
-## Project Structure
+Optional values:
 
-- `web/` application code, templates, static assets, and tests
-- `docker-compose.yml` local container setup
-- `nginx/` reverse proxy configuration
-- `stream.sh` helper script for the live broadcast pipeline
+- `DIRECTOR_EMAILS`
+- `OLLAMA_MODEL`
+- `OLLAMA_URL`
+- `MEDIAMTX_RTMP_PORT`
 
-## Notes
+Notes:
 
-- Do not commit a real `.env` file.
-- Do not add real OAuth secrets or production database credentials to this repo.
-- The bundled archive file is a local export artifact and should not be committed.
+- `REDIRECT_URI` must match your OAuth provider configuration exactly, for example `https://your-domain.com/auth`.
+- Use a long random `SESSION_SECRET`.
+- Keep `.env` out of source control.
+- If port `1935` is already in use on your machine, set `MEDIAMTX_RTMP_PORT` to another host port.
 
-## License
+## Run Locally
 
-Add a license file before publishing publicly if you want others to reuse the code legally.
+```bash
+docker compose up -d --build
+```
+
+Check status:
+
+```bash
+docker compose ps
+```
+
+## Smoke Test
+
+Health endpoint:
+
+```bash
+curl -sS https://your-domain.com/health
+```
+
+OAuth entrypoint:
+
+```bash
+curl -I https://your-domain.com/login
+```
+
+If OAuth environment variables are missing, `/login` intentionally returns a configuration error instead of failing with a hidden runtime issue.
+
+## OAuth Setup
+
+Configure your Google OAuth app with:
+
+- Authorized redirect URI: `https://your-domain.com/auth`
+
+## HTTPS and Domain
+
+Nginx is configured for canonical non-www routing.
+
+- `http://www.your-domain.com` -> `https://your-domain.com`
+- `https://www.your-domain.com` -> `https://your-domain.com`
+
+Your TLS certificate should include both hostnames:
+
+- `your-domain.com`
+- `www.your-domain.com`
+
+## Testing
+
+Run tests from the app folder:
+
+```bash
+cd web
+pytest -q
+```
+
+## Project Layout
+
+- `web/main.py` - routes and auth flow
+- `web/templates/` - rendered pages
+- `web/static/` - CSS and assets
+- `nginx/default.conf` - proxy and TLS routing
+- `docker-compose.yml` - local orchestration
+
+## Security Notes
+
+- No production secrets are committed.
+- Use environment variables and `.env` for deployment secrets.
+- Rotate any credentials that appeared in older copies or git history before publishing.
